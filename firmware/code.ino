@@ -295,12 +295,11 @@ static int i2s_init(uint32_t sampling_rate) {
       .tx_desc_auto_clear = false,
       .fixed_mclk = 0,                            
   };
-  
   i2s_pin_config_t pin_config = {
-      .bck_io_num = D1,    
-      .ws_io_num = D2,     
+      .bck_io_num = D2,  // SCK  
+      .ws_io_num = D3,   // WS  
       .data_out_num = -1,  
-      .data_in_num = D3,   
+      .data_in_num = D6, // SD  
   };
   
   esp_err_t ret = 0;
