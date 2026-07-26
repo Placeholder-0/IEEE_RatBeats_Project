@@ -30,8 +30,8 @@ static signed short sampleBuffer[sample_buffer_size];
 static bool debug_nn = false; 
 static bool record_status = true;
 
-#define WINDOW_SIZE 3
-static float history_buffer[WINDOW_SIZE] = {0.0, 0.0, 0.0};
+#define WINDOW_SIZE 6
+static float history_buffer[WINDOW_SIZE] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 static int history_index = 0;
 static int readings_count = 0;
 
@@ -143,6 +143,13 @@ void loop()
         ei_printf("ERR: Failed to run classifier (%d)\n", r);
         return;
     }
+    uint32_t mitad_buffer = inference.n_samples / 2;
+
+    for (uint32_t i = 0; i < mitad_buffer; i++) {
+        inference.buffer[i] = inference.buffer[i + mitad_buffer];
+    }
+    
+    inference.buf_count = mitad_buffer;
 
     float score_rata = result.classification[1].value;
     
@@ -182,11 +189,14 @@ void loop()
 static void audio_inference_callback(uint32_t n_bytes)
 {
     for(int i = 0; i < n_bytes>>1; i++) {
-        inference.buffer[inference.buf_count++] = sampleBuffer[i];
+        
+        if (inference.buf_count < inference.n_samples) {
+            inference.buffer[inference.buf_count++] = sampleBuffer[i];
+        }
 
         if(inference.buf_count >= inference.n_samples) {
-          inference.buf_count = 0;
-          inference.buf_ready = 1;
+            inference.buf_ready = 1;
+            
         }
     }
 }
